@@ -1,0 +1,25 @@
+version: v1.0
+name: Pipeline 2
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Docker build
+    task:
+      jobs:
+        - name: Build
+          commands:
+            - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
+            - checkout
+            - 'docker pull "${DOCKER_USERNAME}"/smstore-file-service:latest || true'
+            - 'docker build --cache-from "${DOCKER_USERNAME}"/smstore-file-service:latest -t "${DOCKER_USERNAME}"/smstore-file-service:$SEMAPHORE_WORKFLOW_ID .'
+            - docker images
+            - 'docker push "${DOCKER_USERNAME}"/smstore-file-service:$SEMAPHORE_WORKFLOW_ID'
+      secrets:
+        - name: dockerhub
+promotions:
+  - name: Deploy to Kubernetes
+    pipeline_file: pipeline_3.yml
+    auto_promote:
+      when: branch = 'master'

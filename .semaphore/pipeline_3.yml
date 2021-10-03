@@ -1,0 +1,36 @@
+version: v1.0
+name: Pipeline 3
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Deploy
+    task:
+      jobs:
+        - name: Deploy
+          commands:
+            - checkout
+            - kubectl get nodes
+            - kubectl get pods
+            - envsubst < k8s/deployment.yaml | tee _deployment.yaml
+            - kubectl apply -f _deployment.yaml
+            - kubectl apply -f k8s/service.yaml
+            - kubectl apply -f k8s/ingress.yaml
+      secrets:
+        - name: do-k8s
+        - name: dockerhub
+      env_vars:
+        - name: KUBECONFIG
+          value: /home/semaphore/.kube/dok8s.yaml
+  - name: Tag latest release
+    task:
+      secrets:
+        - name: dockerhub
+      jobs:
+        - name: docker tag latest
+          commands:
+            - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
+            - 'docker pull "${DOCKER_USERNAME}"/smstore-file-service:$SEMAPHORE_WORKFLOW_ID'
+            - 'docker tag "${DOCKER_USERNAME}"/smstore-file-service:$SEMAPHORE_WORKFLOW_ID "${DOCKER_USERNAME}"/smstore-file-service:latest'
+            - 'docker push "${DOCKER_USERNAME}"/smstore-file-service:latest'
