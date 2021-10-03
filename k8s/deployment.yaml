@@ -13,7 +13,26 @@ spec:
         app: smstore-file-service
     spec:
       containers:
-        - name: smstore-file-service
-          image: nguyenducduy/smstore-file-service:$SEMAPHORE_WORKFLOW_ID
+      - name: smstore-file-service
+        image: nguyenducduy/smstore-file-service:$SEMAPHORE_WORKFLOW_ID
+        env:
+          - name: HASURA_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: smstore-hasura-jwt-secret
+              key: value
+          - name: S3_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: smstore-do-space-secret-key
+              key: value
+          - name: HASURA_GRAPHQL_ENDPOINT
+          value: "http://smstore-core/v1/graphql"
+          - name: S3_ENDPOINT
+          value: "https://tct.sgp1.digitaloceanspaces.com"
+          - name: S3_ACCESS_KEY_ID
+          value: "F5LN7G6GRJ4PQVLNJYVM"
+          - name: NODE_ENV
+          value: "production"
       imagePullSecrets: # if using a private image
-        - name: dockerhub-user
+      - name: dockerhub-user
