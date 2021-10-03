@@ -1,19 +1,19 @@
-FROM node:12.13-alpine As development
+# development
+FROM node:12.18.4 As development
 
 ENV LANG C.UTF-8
 ENV TZ Asia/Ho_Chi_Minh
 
 WORKDIR /code
 
-COPY package*.json ./
-
-RUN npm install --only=development
-
 COPY . .
 
-RUN npm run build
+RUN yarn install --only=development
+RUN yarn build
 
-FROM node:12.13-alpine as production
+
+# production
+FROM node:12.18.4 as production
 
 ENV LANG C.UTF-8
 ENV TZ Asia/Ho_Chi_Minh
@@ -23,12 +23,9 @@ ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /code
 
-COPY package*.json ./
-
-RUN npm install --only=production
-
 COPY . .
 
+RUN yarn install --only=production
 COPY --from=development /code/dist ./dist
 
 EXPOSE 7000
