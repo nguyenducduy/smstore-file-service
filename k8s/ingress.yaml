@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: smstore-file-service
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts:
+    - file-service.tiemcuatui.com
+    secretName: wildcard-tiemcuatui-com-tls
+  rules:
+  - host: file-service.tiemcuatui.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: smstore-file-service
+          servicePort: 80
+      
