@@ -6,10 +6,10 @@ import {
   UploadedFiles,
   UseInterceptors,
   Headers,
-  UseGuards
+  UseGuards,
+  Param
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { ConfigService } from '@nestjs/config'
 import { FileService } from './file.service'
 import * as sharp from 'sharp'
 import * as fs from 'fs'
@@ -21,13 +21,13 @@ import { AuthGuard } from './auth.guard';
 @Controller()
 export class AppController {
   constructor(
-    private readonly fileService: FileService,
-    private readonly configService: ConfigService
+    private readonly fileService: FileService
   ) {}
 
   @UseInterceptors(AnyFilesInterceptor())
-  @Post('products/upload')
+  @Post(':bucket/upload')
   async uploadFiles(
+    @Param('bucket') bucket,
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     let arr = []
@@ -50,7 +50,7 @@ export class AppController {
 
       // upload to DO
       const data = fs.readFileSync(compressFile)
-      const path = await this.fileService.upload(data, ref, file.mimetype, 'products')
+      const path = await this.fileService.upload(data, ref, file.mimetype, bucket)
 
       // remove local file
       fs.unlink(compressFile, () => {});
@@ -63,11 +63,12 @@ export class AppController {
     return arr
   }
 
-  @Post('products/delete')
+  @Post(':bucket/delete')
   async deleteFiles(
+    @Param('bucket') bucket,
     @Body() formData,
     @Headers('authorization') token
   ) {
-    return await this.fileService.delete(formData, 'products', token);
+    return await this.fileService.delete(formData, bucket, token);
   }
 }
