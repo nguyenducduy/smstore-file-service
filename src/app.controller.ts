@@ -69,6 +69,10 @@ export class AppController {
     @Body() formData,
     @Headers('authorization') token
   ) {
-    return await this.fileService.delete(formData, bucket, token);
+    if (bucket === 'products') {
+      return await this.fileService.deleteProduct(formData, bucket, token);
+    } else {
+      return await this.fileService.delete(formData, bucket, token);
+    }
   }
 }
